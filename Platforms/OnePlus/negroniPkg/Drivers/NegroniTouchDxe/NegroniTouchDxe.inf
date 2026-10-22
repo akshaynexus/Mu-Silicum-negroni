@@ -1,0 +1,50 @@
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = NegroniTouchDxe
+  FILE_GUID                      = 4B2E9D71-0C6A-4F83-9E15-7A3D2C8B5F60
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = NegroniTouchDxeEntry
+
+[Sources]
+  NegroniTouchDxe.c
+  NegroniTouchLog.h
+
+  tlmm.h
+  geni_i2c.h
+  gpio_i2c.h
+  tlmm_i2c.h
+  syna_tcm.h
+  rpmh.h
+  EFII2C.h
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  QcomPkg/QcomPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  DevicePathLib
+  FdtLib
+  MemoryAllocationLib
+  PrintLib
+  UefiBootManagerLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Guids]
+  gEfiEndOfDxeEventGroupGuid
+
+[Protocols]
+  gEfiAbsolutePointerProtocolGuid
+  gEfiClockProtocolGuid
+  gEfiDevicePathProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiVariableWriteArchProtocolGuid
+
+[Depex]
+  gEfiClockProtocolGuid

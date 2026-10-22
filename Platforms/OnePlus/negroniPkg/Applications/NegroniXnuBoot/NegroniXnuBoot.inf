@@ -1,0 +1,35 @@
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = NegroniXnuBoot
+  FILE_GUID                      = 5C1E7A3B-9D24-4E6F-B8A1-2F0D6C93E417
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = NegroniXnuBootEntry
+
+[Sources]
+  NegroniXnuBoot.c
+
+[Sources.AARCH64]
+  AArch64/Enter.S
+
+[Packages]
+  MdePkg/MdePkg.dec
+  ArmPkg/ArmPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  UefiApplicationEntryPoint
+  UefiBootServicesTableLib
+  UefiLib
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+
+[Guids]
+  gEfiFileInfoGuid

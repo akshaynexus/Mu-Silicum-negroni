@@ -1,0 +1,173 @@
+From 0b9b3b0833ab7e1b395dbe3e16cb18218fc178c6 Mon Sep 17 00:00:00 2001
+From: pawlickerr <pawlickerr@proton.me>
+Date: Thu, 22 Oct 2026 10:47:59 -0700
+Subject: [PATCH] negroni: OnePlus 10 Pro (SM8450) ACPI tables
+
+---
+ Platforms/OnePlus/negroni/AcpiTables.inf |  17 ++++++
+ Platforms/OnePlus/negroni/SSDT.aml       | Bin 0 -> 301 bytes
+ Platforms/OnePlus/negroni/SSDT.asl       |  70 +++++++++++++++++++++++
+ Platforms/OnePlus/negroni/TouchSsdt.aml  | Bin 0 -> 130 bytes
+ Platforms/OnePlus/negroni/TouchSsdt.asl  |  21 +++++++
+ 5 files changed, 108 insertions(+)
+ create mode 100644 Platforms/OnePlus/negroni/AcpiTables.inf
+ create mode 100644 Platforms/OnePlus/negroni/SSDT.aml
+ create mode 100644 Platforms/OnePlus/negroni/SSDT.asl
+ create mode 100755 Platforms/OnePlus/negroni/TouchSsdt.aml
+ create mode 100755 Platforms/OnePlus/negroni/TouchSsdt.asl
+
+diff --git a/Platforms/OnePlus/negroni/AcpiTables.inf b/Platforms/OnePlus/negroni/AcpiTables.inf
+new file mode 100644
+index 0000000..54d6908
+--- /dev/null
++++ b/Platforms/OnePlus/negroni/AcpiTables.inf
+@@ -0,0 +1,17 @@
++[Defines]
++  INF_VERSION                    = 0x00010005
++  BASE_NAME                      = AcpiTables
++  FILE_GUID                      = 7E374E25-8E01-4FEE-87F2-390C23C606CD
++  MODULE_TYPE                    = USER_DEFINED
++  VERSION_STRING                 = 1.0
++
++[Binaries]
++  ASL|SSDT.aml
++  ASL|TouchSsdt.aml
++  ASL|Common/SSDT.aml
++  ASL|Waipio/APIC.aml
++  ASL|Waipio/DBG2.aml
++  ASL|Waipio/DSDT.aml
++  ASL|Waipio/FACP.aml
++  ASL|Waipio/GTDT.aml
++  ASL|Waipio/PPTT.aml
+diff --git a/Platforms/OnePlus/negroni/SSDT.aml b/Platforms/OnePlus/negroni/SSDT.aml
+new file mode 100644
+index 0000000000000000000000000000000000000000..dac36f24558fe4f3b183f164a059dc14e9cb6778
+GIT binary patch
+literal 301
+zcmWFzb_vmCWME)AAMEHG9O@Tj5U2nI49pA+48Fl`AwY^%z(XJ=KG-RqBOo}`iPtwI
+zz`(-9)PNzn$${S~#4ngFMh_$ll8gspj(87G7hXr_08ax0Lqi6R_)t$5An6<wEa=b1
+zmEEJjzzBq*3`{_y8N?YFBpH-}40Z;P6?y@_28Ik!C9FVY3_G~tN{(Suf@%sIl9EcG
+zr7poPLXIp<g2G$^s@JlAy_m!6zUcVoQ)Wjr^n^57gg8J}Fmmw%89<tmt5JxPl@Unu
+aaJ>}bVrArF0x@5SaK;CRI5I5Z;s*ec05$;t
+
+literal 0
+HcmV?d00001
+
+diff --git a/Platforms/OnePlus/negroni/SSDT.asl b/Platforms/OnePlus/negroni/SSDT.asl
+new file mode 100644
+index 0000000..c81711a
+--- /dev/null
++++ b/Platforms/OnePlus/negroni/SSDT.asl
+@@ -0,0 +1,70 @@
++DefinitionBlock ("SSDT.aml", "SSDT", 2, "SAMSUN", "R0Q    ", 3)
++{
++    External (\_SB.PM01, UnknownObj)
++
++    Scope (\_SB)
++    {
++	    Name (PSUB, "MTP08450")
++
++        Device (BTNS)
++        {
++            Alias (\_SB.PSUB, _SUB)
++
++            Name (_HID, "ACPI0011")
++            Name (_UID, 0)
++
++            Name (_CRS, ResourceTemplate ()
++            {
++                GpioInt (Edge, ActiveBoth, ExclusiveAndWake, PullDown, 0x0000, "\\_SB.PM01", ,) { 0x07 }
++                GpioInt (Edge, ActiveBoth, Exclusive,        PullUp,   0x0BB8, "\\_SB.PM01", ,) { 0xC6 }
++                GpioInt (Edge, ActiveBoth, Exclusive,        PullDown, 0x0000, "\\_SB.PM01", ,) { 0x06 }
++            })
++
++            Name (_DSD, Package ()
++            {
++                ToUUID ("FA6BD625-9CE8-470D-A2C7-B3CA36C4282E"),
++
++                Package ()
++                {
++                    Package ()
++                    {
++                        0,
++                        1,
++                        0,
++                        1,
++                        13
++                    },
++
++                    Package ()
++                    {
++                        1,
++                        0,
++                        1,
++                        1,
++                        129
++                    },
++
++                    Package ()
++                    {
++                        1,
++                        1,
++                        1,
++                        12,
++                        233
++                    },
++
++                    Package ()
++                    {
++                        1,
++                        2,
++                        1,
++                        12,
++                        234
++                    }
++                }
++            })
++
++            Method (_STA, 0, NotSerialized) { Return (0x0F) }
++        }
++    }
++}
+diff --git a/Platforms/OnePlus/negroni/TouchSsdt.aml b/Platforms/OnePlus/negroni/TouchSsdt.aml
+new file mode 100755
+index 0000000000000000000000000000000000000000..a07fe429d265a296aad6ba09a428e1609ab3893e
+GIT binary patch
+literal 130
+zcmWFzb_r=>U|?XX2o8634N>rObr10mb@pHciune+g#am50bkab_+Y2_=q49dzYu2+
+zj(87G7haG`0|Ns?29EepPZuER926|5$)(oD$pF+mlYzm3fdR}85aeeNfU+5YYy}2}
+QN(K?m_}~ynh9zA50Pctw0RR91
+
+literal 0
+HcmV?d00001
+
+diff --git a/Platforms/OnePlus/negroni/TouchSsdt.asl b/Platforms/OnePlus/negroni/TouchSsdt.asl
+new file mode 100755
+index 0000000..0f5aeb7
+--- /dev/null
++++ b/Platforms/OnePlus/negroni/TouchSsdt.asl
+@@ -0,0 +1,21 @@
++DefinitionBlock ("TouchSsdt.aml", "SSDT", 2, "SWEET ", "NEGTOUCH", 1)
++{
++    Scope (\_SB)
++    {
++        Device (NTCH)
++        {
++            Name (_HID, "NEGT0001")
++            Name (_UID, 0)
++            Name (_CRS, ResourceTemplate ()
++            {
++                Memory32Fixed (ReadWrite, 0x00990000, 0x00004000)
++                Memory32Fixed (ReadWrite, 0x0F115000, 0x00001000)
++                Memory32Fixed (ReadWrite, 0x0F110000, 0x00002000)
++            })
++            Method (_STA, 0, NotSerialized)
++            {
++                Return (0x0F)
++            }
++        }
++    }
++}
+-- 
+2.53.0
+

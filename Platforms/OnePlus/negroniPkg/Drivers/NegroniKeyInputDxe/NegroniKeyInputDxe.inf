@@ -1,0 +1,37 @@
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = NegroniKeyInputDxe
+  FILE_GUID                      = 7E3B9A51-6C2D-4F1E-8B47-2D9C5A0E6F13
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = NegroniKeyInputDxeEntry
+
+[Sources]
+  NegroniKeyInputDxe.c
+  NegroniSpmiKeys.h
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  DevicePathLib
+  UefiRuntimeServicesTableLib
+  BaseMemoryLib
+  DebugLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Protocols]
+  gEfiSimpleTextInputExProtocolGuid
+  gEfiSimpleTextInProtocolGuid
+  gEfiDevicePathProtocolGuid
+
+[Guids]
+  gEfiEventExitBootServicesGuid
+  gEfiGlobalVariableGuid
+
+[Depex]
+  gEfiTimerArchProtocolGuid AND gEfiVariableArchProtocolGuid AND gEfiVariableWriteArchProtocolGuid

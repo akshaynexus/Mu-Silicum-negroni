@@ -18,6 +18,8 @@
 #include <Library/BootGraphicsLib.h>
 #include <Library/BootGraphics.h>
 #include <Library/PrintLib.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/DevicePathLib.h>
 
 #include <Configuration/BootDevices.h>
 
@@ -141,6 +143,9 @@ PlatformBootManagerProcessBootCompletion (OUT EFI_BOOT_MANAGER_LOAD_OPTION *Boot
   return;
 }
 
+// MdeModulePkg BootManagerMenuApp
+STATIC EFI_GUID mBootMenuAppGuid = { 0xEEC25BDC, 0x67F2, 0x4D95, { 0xB1, 0xD5, 0xF8, 0x1B, 0x20, 0x39, 0xD1, 0x1D } };
+
 VOID
 EFIAPI
 PlatformBootManagerPriorityBoot (IN OUT UINT16 **BootNext)
@@ -148,13 +153,15 @@ PlatformBootManagerPriorityBoot (IN OUT UINT16 **BootNext)
   EFI_STATUS                   Status;
   EFI_BOOT_MANAGER_LOAD_OPTION LoadOption;
   BOOLEAN                      BootManagerFlag;
+  BOOLEAN                      BootMenuFlag;
 
   // Unregister Key Callback
   UnregisterKeyCallback ();
 
-  // Get Boot Manager Flag
+  // Get Boot Manager Flag (Volume Up) or Boot Menu Flag (Volume Down)
   BootManagerFlag = EnterBootManager ();
-  if (BootManagerFlag == FALSE) {
+  BootMenuFlag    = EnterBootMenu ();
+  if (BootManagerFlag == FALSE && BootMenuFlag == FALSE) {
     return;
   }
 
@@ -163,6 +170,19 @@ PlatformBootManagerPriorityBoot (IN OUT UINT16 **BootNext)
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "%a: Failed to get Boot Manager Load Option! Status = %r", __FUNCTION__, Status));
     return;
+  }
+
+  // Volume Down: the boot device list (BootManagerMenuApp) from the same FV as the setup menu
+  if (BootMenuFlag && !BootManagerFlag) {
+    EFI_DEVICE_PATH_PROTOCOL *Node = LoadOption.FilePath;
+
+    while (!IsDevicePathEnd (Node) && !IsDevicePathEnd (NextDevicePathNode (Node))) {
+      Node = NextDevicePathNode (Node);
+    }
+
+    if (DevicePathType (Node) == MEDIA_DEVICE_PATH && DevicePathSubType (Node) == MEDIA_PIWG_FW_FILE_DP) {
+      CopyGuid (&((MEDIA_FW_VOL_FILEPATH_DEVICE_PATH *)Node)->FvFileName, &mBootMenuAppGuid);
+    }
   }
 
   // Execute Boot Manager Load Option

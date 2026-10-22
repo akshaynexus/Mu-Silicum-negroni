@@ -20,3 +20,9 @@
 	path = Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl
 	url = https://github.com/openssl/openssl.git
 	branch = 67b5686b4419b4cb8caa502711c41815f5279751
+[submodule "Common/Features/mu_feature_dfci"]
+	path = Common/Features/mu_feature_dfci
+	url = https://github.com/microsoft/mu_feature_dfci.git
+[submodule "Common/Features/mu_feature_config"]
+	path = Common/Features/mu_feature_config
+	url = https://github.com/microsoft/mu_feature_config.git

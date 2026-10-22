@@ -17,14 +17,20 @@
 //
 STATIC EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *mSimpleInExProtocol  = NULL;
 STATIC VOID                              *mNotifyHandle        = NULL;
+STATIC VOID                              *mNotifyHandleDown    = NULL;
 STATIC BOOLEAN                            mEnterBootManager    = FALSE;
+STATIC BOOLEAN                            mEnterBootMenu       = FALSE;
 
 EFI_STATUS
 EFIAPI
 KeyNotify (IN EFI_KEY_DATA *KeyData)
 {
-  // Toggle Boot Manager Flag
-  mEnterBootManager = TRUE;
+  // Toggle Boot Manager Flag (Volume Up: setup menu; Volume Down: boot device menu)
+  if (KeyData->Key.ScanCode == SCAN_DOWN) {
+    mEnterBootMenu = TRUE;
+  } else {
+    mEnterBootManager = TRUE;
+  }
 
   return EFI_SUCCESS;
 }
@@ -91,6 +97,13 @@ RegisterKeyNotify ()
     return Status;
   }
 
+  // Register Volume Down Key Notify
+  KeyData.Key.ScanCode = SCAN_DOWN;
+  Status = mSimpleInExProtocol->RegisterKeyNotify (mSimpleInExProtocol, &KeyData, &KeyNotify, &mNotifyHandleDown);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((EFI_D_ERROR, "%a: Failed to Register Volume Down Key Notify! Status = %r\n", __FUNCTION__, Status));
+  }
+
   return EFI_SUCCESS;
 }
 
@@ -129,6 +142,10 @@ UnregisterKeyCallback ()
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "%a: Failed to Unregister Volume Up Key Notify! Status = %r\n", __FUNCTION__, Status));
   }
+
+  if (mNotifyHandleDown != NULL) {
+    mSimpleInExProtocol->UnregisterKeyNotify (mSimpleInExProtocol, mNotifyHandleDown);
+  }
 }
 
 BOOLEAN
@@ -136,4 +153,11 @@ EnterBootManager ()
 {
   // Pass Boot Manager Flag
   return mEnterBootManager;
+}
+
+BOOLEAN
+EnterBootMenu ()
+{
+  // Pass Boot Menu Flag (Volume Down)
+  return mEnterBootMenu;
 }
