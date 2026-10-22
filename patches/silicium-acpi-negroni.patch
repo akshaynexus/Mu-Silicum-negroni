@@ -1,7 +1,7 @@
 From 0b9b3b0833ab7e1b395dbe3e16cb18218fc178c6 Mon Sep 17 00:00:00 2001
 From: pawlickerr <pawlickerr@proton.me>
 Date: Thu, 22 Oct 2026 10:47:59 -0700
-Subject: [PATCH] negroni: OnePlus 10 Pro (SM8450) ACPI tables
+Subject: [PATCH 1/2] negroni: OnePlus 10 Pro (SM8450) ACPI tables
 
 ---
  Platforms/OnePlus/negroni/AcpiTables.inf |  17 ++++++
@@ -168,6 +168,57 @@ index 0000000..0f5aeb7
 +        }
 +    }
 +}
+-- 
+2.53.0
+
+
+From e239dc7b15a77a19033c0ee119dd6795e4a56451 Mon Sep 17 00:00:00 2001
+From: pawlickerr <pawlickerr@proton.me>
+Date: Thu, 22 Oct 2026 15:42:55 -0700
+Subject: [PATCH 2/2] negroni: key device NEGK0001 (SPMI arbiter core and
+ observer)
+
+---
+ Platforms/OnePlus/negroni/TouchSsdt.aml | Bin 130 -> 204 bytes
+ Platforms/OnePlus/negroni/TouchSsdt.asl |  15 +++++++++++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/Platforms/OnePlus/negroni/TouchSsdt.aml b/Platforms/OnePlus/negroni/TouchSsdt.aml
+index a07fe429d265a296aad6ba09a428e1609ab3893e..1ac03028aa2922ce9fecd82680f3a7950a69feef 100755
+GIT binary patch
+delta 122
+zcmZo-Jj19S9PAQuhJk^BDJMAG)ip%H&(%G|Kh)WS5h&*A7vjUhqN*U^&NWdz+AF%r
+zgT>F=HIgIV!_$QqsL<QMz`&4!BR<sA1xPvv1q;e@NwskTbuu{cFc>f}0NFruTzD87
+T7#J!UL^$JvLmU~FaPb2Go$DC3
+
+delta 47
+zcmX@Z*u<zF9PAR(#K6G7R1qBR>KdZp=jtBfAL{JE2o&=Tb_)SgtOCBQ6V;;u6FUlQ
+
+diff --git a/Platforms/OnePlus/negroni/TouchSsdt.asl b/Platforms/OnePlus/negroni/TouchSsdt.asl
+index 0f5aeb7..b62a4f8 100755
+--- a/Platforms/OnePlus/negroni/TouchSsdt.asl
++++ b/Platforms/OnePlus/negroni/TouchSsdt.asl
+@@ -17,5 +17,20 @@ DefinitionBlock ("TouchSsdt.aml", "SSDT", 2, "SWEET ", "NEGTOUCH", 1)
+                 Return (0x0F)
+             }
+         }
++
++        Device (NKEY)
++        {
++            Name (_HID, "NEGK0001")
++            Name (_UID, 0)
++            Name (_CRS, ResourceTemplate ()
++            {
++                Memory32Fixed (ReadOnly, 0x0C400000, 0x00003000)
++                Memory32Fixed (ReadWrite, 0x0C440000, 0x00008000)
++            })
++            Method (_STA, 0, NotSerialized)
++            {
++                Return (0x0F)
++            }
++        }
+     }
+ }
 -- 
 2.53.0
 
