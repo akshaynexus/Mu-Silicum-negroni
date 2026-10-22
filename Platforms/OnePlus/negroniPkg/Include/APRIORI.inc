@@ -72,6 +72,7 @@ APRIORI DXE {
   INF MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
   INF MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
 
+  INF Binaries/negroni/QcomPkg/Drivers/UsbPwrCtrlDxe/UsbPwrCtrlDxe.inf
   INF Binaries/negroni/QcomPkg/Drivers/UsbfnDwc3Dxe/UsbfnDwc3Dxe.inf
   INF Binaries/negroni/QcomPkg/Drivers/XhciPciEmulationDxe/XhciPciEmulationDxe.inf
   INF Binaries/negroni/QcomPkg/Drivers/XhciDxe/XhciDxe.inf
@@ -83,6 +84,7 @@ APRIORI DXE {
   INF Binaries/negroni/QcomPkg/Drivers/UsbMsdDxe/UsbMsdDxe.inf
   INF Binaries/negroni/QcomPkg/Drivers/UsbDeviceDxe/UsbDeviceDxe.inf
 
+  INF Binaries/negroni/QcomPkg/Drivers/UsbConfigDxe/UsbConfigDxe.inf
   INF Binaries/negroni/QcomPkg/Drivers/UsbInitDxe/UsbInitDxe.inf
 
   INF Binaries/negroni/QcomPkg/Drivers/TsensDxe/TsensDxe.inf
