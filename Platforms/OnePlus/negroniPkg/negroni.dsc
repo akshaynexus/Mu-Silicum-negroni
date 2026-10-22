@@ -58,6 +58,7 @@
   negroniPkg/Drivers/NegroniKeyInputDxe/NegroniKeyInputDxe.inf
   negroniPkg/Drivers/NegroniTouchDxe/NegroniTouchDxe.inf
   negroniPkg/Drivers/NegroniWindowsFirstDxe/NegroniWindowsFirstDxe.inf
+  negroniPkg/Drivers/NegroniPcieDxe/NegroniPcieDxe.inf
   MdeModulePkg/Bus/Usb/UsbMouseDxe/UsbMouseDxe.inf
 
   negroni/AcpiTables.inf
