@@ -1,0 +1,30 @@
+[Defines]
+  INF_VERSION    = 0x00010019
+  BASE_NAME      = NegroniWindowsFirstDxe
+  FILE_GUID      = 6E1F4C2A-9B3D-4E57-A8C1-2D7F05B9E361
+  MODULE_TYPE    = DXE_DRIVER
+  VERSION_STRING = 1.0
+  ENTRY_POINT    = NegroniWindowsFirstEntry
+
+[Sources]
+  NegroniWindowsFirstDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[LibraryClasses]
+  BaseMemoryLib
+  DebugLib
+  DevicePathLib
+  MemoryAllocationLib
+  UefiBootManagerLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Protocols]
+  gEfiSimpleFileSystemProtocolGuid
+
+[Depex]
+  gEfiVariableArchProtocolGuid AND gEfiVariableWriteArchProtocolGuid

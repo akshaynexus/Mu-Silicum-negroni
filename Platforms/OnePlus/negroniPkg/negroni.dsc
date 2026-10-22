@@ -57,6 +57,7 @@
   negroniPkg/Applications/NegroniXnuBoot/NegroniXnuBoot.inf
   negroniPkg/Drivers/NegroniKeyInputDxe/NegroniKeyInputDxe.inf
   negroniPkg/Drivers/NegroniTouchDxe/NegroniTouchDxe.inf
+  negroniPkg/Drivers/NegroniWindowsFirstDxe/NegroniWindowsFirstDxe.inf
   MdeModulePkg/Bus/Usb/UsbMouseDxe/UsbMouseDxe.inf
 
   negroni/AcpiTables.inf
