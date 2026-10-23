@@ -33,6 +33,7 @@
 
 #define WLAN_EN_GPIO     80
 #define PERST_GPIO       94
+#define XO_CLK_GPIO      204     /* DT wcn6855-pmu xo-clk-gpios */
 
 #define PARF_SYS_CTRL                   0x00
 #define PARF_PM_CTRL                    0x20
@@ -200,9 +201,20 @@ LinkUp (
   }
 
   // QCA6490 on (rails are shared with UFS and stay on in UEFI), endpoint in reset
+  // Linux pwrseq-qcom-wcn (wcn6855): XO clock pin high, WLAN_EN high, then the XO pin low again and 50 ms
   Gpio (PERST_GPIO, FALSE);
+  Gpio (WLAN_EN_GPIO, FALSE);
+  Gpio (XO_CLK_GPIO, FALSE);
+  gBS->Stall (10000);
+  Gpio (XO_CLK_GPIO, TRUE);
+  gBS->Stall (200);
   Gpio (WLAN_EN_GPIO, TRUE);
+  gBS->Stall (5000);
+  gBS->Stall (5000);
+  Gpio (XO_CLK_GPIO, FALSE);
   gBS->Stall (50000);
+  Log ("WLAN_EN %u, SW_CTRL in %u\n", (MmioRead32 (TLMM_BASE + WLAN_EN_GPIO * 0x1000 + 4) >> 1) & 1,
+    MmioRead32 (TLMM_BASE + 82 * 0x1000 + 4) & 1);
 
   Status = mClock->GetClockPowerDomainID (mClock, "gcc_pcie_0_gdsc", &Id);
   if (!EFI_ERROR (Status)) {
@@ -294,7 +306,7 @@ LinkUp (
     gBS->Stall (10000);
   }
 
-  Log ("link status %x ltssm %x\n", Val >> 16, MmioRead32 (PARF + 0x1b4));
+  Log ("link status %x ltssm %x (PARF_LTSSM %x)\n", Val >> 16, MmioRead32 (PARF + 0x1b4), MmioRead32 (PARF + PARF_LTSSM));
   if ((Val & BIT29) == 0) {
     return EFI_TIMEOUT;
   }
