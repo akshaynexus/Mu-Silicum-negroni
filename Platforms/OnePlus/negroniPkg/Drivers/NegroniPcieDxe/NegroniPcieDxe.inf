@@ -9,20 +9,29 @@
 [Sources]
   NegroniPcieDxe.c
   NegroniPciePhy.h
+  NegroniPcieLog.h
 
 [Packages]
   MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
   QcomPkg/QcomPkg.dec
 
 [LibraryClasses]
   DebugLib
+  DevicePathLib
   DxeServicesTableLib
   IoLib
+  MemoryAllocationLib
+  PrintLib
+  UefiBootManagerLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
+  UefiLib
 
 [Protocols]
   gEfiClockProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiVariableWriteArchProtocolGuid
 
 [Depex]
   gEfiClockProtocolGuid

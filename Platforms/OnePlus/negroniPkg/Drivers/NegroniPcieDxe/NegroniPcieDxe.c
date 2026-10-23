@@ -1,10 +1,18 @@
 #include <Uefi.h>
 
 #include <Library/DebugLib.h>
+#include <Library/DevicePathLib.h>
 #include <Library/DxeServicesTableLib.h>
 #include <Library/IoLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/PrintLib.h>
+#include <Library/UefiBootManagerLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiLib.h>
 #include <Protocol/EFIClock.h>
+#include <Protocol/LoadedImage.h>
+
+#include "NegroniPcieLog.h"
 
 #include "NegroniPciePhy.h"
 
@@ -56,6 +64,30 @@ STATIC CONST CHAR8  *mClocks[] = {
 };
 
 STATIC EFI_CLOCK_PROTOCOL  *mClock;
+
+STATIC CHAR8   mLog[NEGRONI_PCIE_LOG_SIZE];
+STATIC UINTN   mLogLen;
+STATIC EFI_GUID  mLogGuid  = NEGRONI_PCIE_LOG_PROTOCOL_GUID;
+STATIC EFI_GUID  mDiagGuid = NEGRONI_WIFI_DIAG_FILE_GUID;
+
+/* Into the debug output and the log the "Wi-Fi diagnostics" entry shows. */
+STATIC
+VOID
+EFIAPI
+Log (
+  IN CONST CHAR8  *Format,
+  ...
+  )
+{
+  VA_LIST  Args;
+  UINTN    Len;
+
+  VA_START (Args, Format);
+  Len = AsciiVSPrint (mLog + mLogLen, sizeof (mLog) - mLogLen, Format, Args);
+  VA_END (Args);
+  DEBUG ((DEBUG_ERROR, "NPCIE: %a", mLog + mLogLen));
+  mLogLen += Len;
+}
 
 // the PCIe register blocks are not in the platform memory map
 STATIC
@@ -113,7 +145,7 @@ ClockOn (
     Status = mClock->EnableClock (mClock, Id);
   }
 
-  DEBUG ((DEBUG_ERROR, "NPCIE: %a %r\n", Name, Status));
+  Log ("%a %r\n", Name, Status);
   return Status;
 }
 
@@ -160,7 +192,7 @@ LinkUp (
     Status = MapMmio (DBI, MEM_LIMIT + 1 - DBI);
   }
 
-  DEBUG ((DEBUG_ERROR, "NPCIE: map %r\n", Status));
+  Log ("map %r\n", Status);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -175,7 +207,7 @@ LinkUp (
     Status = mClock->EnableClockPowerDomain (mClock, Id);
   }
 
-  DEBUG ((DEBUG_ERROR, "NPCIE: gdsc %r\n", Status));
+  Log ("gdsc %r\n", Status);
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -224,7 +256,7 @@ LinkUp (
   }
 
   Val = MmioRead32 (PHY + PHY_PCS_PCS_STATUS1);
-  DEBUG ((DEBUG_ERROR, "NPCIE: phy status %x\n", Val));
+  Log ("phy status %x\n", Val);
   if (Val & BIT6) {
     return EFI_DEVICE_ERROR;
   }
@@ -257,14 +289,98 @@ LinkUp (
     gBS->Stall (10000);
   }
 
-  DEBUG ((DEBUG_ERROR, "NPCIE: link status %x ltssm %x\n", Val >> 16, MmioRead32 (PARF + 0x1b4)));
+  Log ("link status %x ltssm %x\n", Val >> 16, MmioRead32 (PARF + 0x1b4));
   if ((Val & BIT29) == 0) {
     return EFI_TIMEOUT;
   }
 
-  Val = MmioRead32 (CFG_BUS1);
-  DEBUG ((DEBUG_ERROR, "NPCIE: bus 1 device %04x:%04x\n", Val & 0xffff, Val >> 16));
+  // the endpoint may answer config reads only some time after the link is up
+  for (Index = 0; Index < 100; Index++) {
+    Val = MmioRead32 (CFG_BUS1);
+    if (Val != 0xffffffff) {
+      break;
+    }
+
+    gBS->Stall (1000);
+  }
+
+  Log ("bus 1 device %04x:%04x after %u ms; root port bus regs %08x, cmd %08x\n", Val & 0xffff, Val >> 16,
+    (UINT32)Index, MmioRead32 (DBI + 0x18), MmioRead32 (DBI + 0x04));
+  Log ("iATU 0: ctrl1 %08x ctrl2 %08x base %08x limit %08x target %08x\n", MmioRead32 (ATU + 0x00),
+    MmioRead32 (ATU + 0x04), MmioRead32 (ATU + 0x08), MmioRead32 (ATU + 0x10), MmioRead32 (ATU + 0x14));
+  if (Val != 0xffffffff) {
+    Log ("bus 1 class %08x, BAR0 %08x\n", MmioRead32 (CFG_BUS1 + 0x08), MmioRead32 (CFG_BUS1 + 0x10));
+  }
   return (Val == 0x110317cb) ? EFI_SUCCESS : EFI_NOT_FOUND;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+Rerun (
+  VOID
+  )
+{
+  EFI_STATUS  Status;
+
+  mLogLen = 0;
+  mLog[0] = 0;
+  Status  = LinkUp ();
+  Log ("Wi-Fi link %r\n", Status);
+  return Status;
+}
+
+STATIC NEGRONI_PCIE_LOG_PROTOCOL  mLogProtocol = { mLog, Rerun };
+
+/* "Wi-Fi diagnostics" in the boot menu: an app entry, after everything else (never ahead of Windows). */
+STATIC
+VOID
+EFIAPI
+AddDiagBootOption (
+  IN EFI_EVENT  Event,
+  IN VOID       *Context
+  )
+{
+  EFI_LOADED_IMAGE_PROTOCOL          *Image;
+  EFI_DEVICE_PATH_PROTOCOL           *FvPath;
+  EFI_DEVICE_PATH_PROTOCOL           *Path;
+  MEDIA_FW_VOL_FILEPATH_DEVICE_PATH  FileNode;
+  EFI_BOOT_MANAGER_LOAD_OPTION       Option;
+  EFI_BOOT_MANAGER_LOAD_OPTION       *Options;
+  UINTN                              Count;
+  VOID                               *VariableWrite;
+
+  if (EFI_ERROR (gBS->LocateProtocol (&gEfiVariableWriteArchProtocolGuid, NULL, &VariableWrite))) {
+    return;   // the protocol notify fires again once variables are writable
+  }
+
+  gBS->CloseEvent (Event);
+  if (EFI_ERROR (gBS->HandleProtocol (gImageHandle, &gEfiLoadedImageProtocolGuid, (VOID **)&Image)) ||
+      ((FvPath = DevicePathFromHandle (Image->DeviceHandle)) == NULL))
+  {
+    return;
+  }
+
+  EfiInitializeFwVolDevicepathNode (&FileNode, &mDiagGuid);
+  Path = AppendDevicePathNode (FvPath, (EFI_DEVICE_PATH_PROTOCOL *)&FileNode);
+  if (Path == NULL) {
+    return;
+  }
+
+  if (!EFI_ERROR (EfiBootManagerInitializeLoadOption (&Option, LoadOptionNumberUnassigned, LoadOptionTypeBoot,
+                    LOAD_OPTION_ACTIVE | LOAD_OPTION_CATEGORY_APP, L"Wi-Fi diagnostics", Path, NULL, 0)))
+  {
+    Options = EfiBootManagerGetLoadOptions (&Count, LoadOptionTypeBoot);
+    if (EfiBootManagerFindLoadOption (&Option, Options, Count) < 0) {
+      DEBUG ((DEBUG_ERROR, "NPCIE: boot entry \"Wi-Fi diagnostics\" %r\n",
+        EfiBootManagerAddLoadOptionVariable (&Option, (UINTN)-1)));
+    }
+
+    EfiBootManagerFreeLoadOptions (Options, Count);
+    EfiBootManagerFreeLoadOption (&Option);
+  }
+
+  FreePool (Path);
 }
 
 EFI_STATUS
@@ -274,7 +390,16 @@ NegroniPcieEntry (
   IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-  DEBUG ((DEBUG_ERROR, "NPCIE: Wi-Fi link %r\n", LinkUp ()));
-  gBS->Stall (5000000);
+  EFI_HANDLE  Handle = NULL;
+  EFI_EVENT   Event;
+  VOID        *Registration;
+
+  Log ("Wi-Fi link %r\n", LinkUp ());
+  gBS->InstallMultipleProtocolInterfaces (&Handle, &mLogGuid, &mLogProtocol, NULL);
+  if (!EFI_ERROR (gBS->CreateEvent (EVT_NOTIFY_SIGNAL, TPL_CALLBACK, AddDiagBootOption, NULL, &Event))) {
+    gBS->RegisterProtocolNotify (&gEfiVariableWriteArchProtocolGuid, Event, &Registration);
+    gBS->SignalEvent (Event);
+  }
+
   return EFI_SUCCESS;
 }

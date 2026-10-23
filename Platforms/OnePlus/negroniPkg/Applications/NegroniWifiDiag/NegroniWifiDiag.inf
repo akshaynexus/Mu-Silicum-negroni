@@ -1,0 +1,19 @@
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = NegroniWifiDiag
+  FILE_GUID                      = 4F2B8E63-1C07-4D95-8A3E-72B519D06C2F
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = NegroniWifiDiagEntry
+
+[Sources]
+  NegroniWifiDiag.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  UefiApplicationEntryPoint
+  UefiBootServicesTableLib
+  UefiLib

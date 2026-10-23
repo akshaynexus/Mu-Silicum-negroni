@@ -59,6 +59,7 @@
   negroniPkg/Drivers/NegroniTouchDxe/NegroniTouchDxe.inf
   negroniPkg/Drivers/NegroniWindowsFirstDxe/NegroniWindowsFirstDxe.inf
   negroniPkg/Drivers/NegroniPcieDxe/NegroniPcieDxe.inf
+  negroniPkg/Applications/NegroniWifiDiag/NegroniWifiDiag.inf
   MdeModulePkg/Bus/Usb/UsbMouseDxe/UsbMouseDxe.inf
 
   negroni/AcpiTables.inf
