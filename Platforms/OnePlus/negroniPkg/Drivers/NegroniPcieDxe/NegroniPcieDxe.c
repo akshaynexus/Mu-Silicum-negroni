@@ -44,6 +44,8 @@
 #define PARF_DBI_BASE_ADDR_V2_HI        0x354
 #define PARF_ATU_BASE_ADDR              0x634
 #define PARF_ATU_BASE_ADDR_HI           0x638
+#define PARF_SLV_ADDR_SPACE_SIZE_V2     0x358
+#define PARF_SLV_ADDR_SPACE_SIZE_V2_HI  0x35c
 #define PARF_DEVICE_TYPE                0x1000
 #define ELBI_SYS_STTS                   0x08
 
@@ -228,6 +230,9 @@ LinkUp (
   MmioWrite32 (PARF + PARF_DBI_BASE_ADDR_V2_HI, 0);
   MmioWrite32 (PARF + PARF_ATU_BASE_ADDR, (UINT32)ATU);
   MmioWrite32 (PARF + PARF_ATU_BASE_ADDR_HI, 0);
+  // the slave window over 0x60000000 (DBI, iATU, bus config, memory): Linux qcom_pcie_configure_dbi_atu_base
+  MmioWrite32 (PARF + PARF_SLV_ADDR_SPACE_SIZE_V2, 0);
+  MmioWrite32 (PARF + PARF_SLV_ADDR_SPACE_SIZE_V2_HI, 0x80000000);
   MmioAnd32 (PARF + PARF_SYS_CTRL, ~(UINT32)BIT29);
   MmioOr32 (PARF + PARF_MHI_CLOCK_RESET_CTRL, BIT4);
   MmioAnd32 (PARF + PARF_PM_CTRL, ~(UINT32)BIT5);
