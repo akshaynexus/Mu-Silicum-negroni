@@ -16,6 +16,7 @@
 
 [LibraryClasses]
   DebugLib
+  DxeServicesTableLib
   IoLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint

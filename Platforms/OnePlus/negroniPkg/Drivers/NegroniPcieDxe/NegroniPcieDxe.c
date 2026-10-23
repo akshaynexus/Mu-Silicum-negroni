@@ -1,6 +1,7 @@
 #include <Uefi.h>
 
 #include <Library/DebugLib.h>
+#include <Library/DxeServicesTableLib.h>
 #include <Library/IoLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Protocol/EFIClock.h>
@@ -56,6 +57,24 @@ STATIC CONST CHAR8  *mClocks[] = {
 
 STATIC EFI_CLOCK_PROTOCOL  *mClock;
 
+// the PCIe register blocks are not in the platform memory map
+STATIC
+EFI_STATUS
+MapMmio (
+  IN UINT64  Base,
+  IN UINT64  Size
+  )
+{
+  EFI_STATUS  Status;
+
+  Status = gDS->AddMemorySpace (EfiGcdMemoryTypeMemoryMappedIo, Base, Size, EFI_MEMORY_UC | EFI_MEMORY_RUNTIME);
+  if (EFI_ERROR (Status) && (Status != EFI_ACCESS_DENIED)) {
+    return Status;
+  }
+
+  return gDS->SetMemorySpaceAttributes (Base, Size, EFI_MEMORY_UC);
+}
+
 STATIC
 VOID
 Gpio (
@@ -94,7 +113,7 @@ ClockOn (
     Status = mClock->EnableClock (mClock, Id);
   }
 
-  DEBUG ((EFI_ERROR (Status) ? DEBUG_ERROR : DEBUG_INFO, "NPCIE: %a %r\n", Name, Status));
+  DEBUG ((DEBUG_ERROR, "NPCIE: %a %r\n", Name, Status));
   return Status;
 }
 
@@ -132,6 +151,16 @@ LinkUp (
   EFI_STATUS  Status;
 
   Status = gBS->LocateProtocol (&gEfiClockProtocolGuid, NULL, (VOID **)&mClock);
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  Status = MapMmio (PARF, 0x10000);
+  if (!EFI_ERROR (Status)) {
+    Status = MapMmio (DBI, MEM_LIMIT + 1 - DBI);
+  }
+
+  DEBUG ((DEBUG_ERROR, "NPCIE: map %r\n", Status));
   if (EFI_ERROR (Status)) {
     return Status;
   }
