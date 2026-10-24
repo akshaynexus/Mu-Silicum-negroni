@@ -11,11 +11,11 @@
 	branch = release/202608
 [submodule "Mu_Basecore"]
 	path = Mu_Basecore
-	url = https://github.com/microsoft/mu_basecore.git
-	branch = release/202608
+	url = https://github.com/akshaynexus/mu_basecore.git
+	branch = iosplus10
 [submodule "Silicium-ACPI"]
 	path = Silicium-ACPI
-	url = https://github.com/Project-Silicium/Silicium-ACPI.git
+	url = https://github.com/akshaynexus/Silicium-ACPI.git
 [submodule "Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl"]
 	path = Silicon/Silicium/OpensslPkg/Library/OpensslLib/openssl
 	url = https://github.com/openssl/openssl.git
