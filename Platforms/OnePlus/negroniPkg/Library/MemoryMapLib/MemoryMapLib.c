@@ -34,7 +34,9 @@ gMemoryDescriptor[] = {
   {"QTEE",              0xE9B00000, 0x00500000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},
   {"TZApps Reserved",   0xEA000000, 0x07400000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},
 
-  {"Kernel RAM",        0x841000000,0x13F000000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
+  // NE2211 System RAM 0x840000000-0xA7FFFFFFF: XNU window (iOSPlus10 0401) + UEFI below 0xA20000000; GPU region above it
+  // (iOSPlus10 config [ram]) is not in this map
+  {"Kernel RAM",        0x841000000,0x1DF000000, AddMem, SYS_MEM, SYS_MEM_CAP, Conv,   WRITE_BACK_XN},
   {"HYP Reserved",      0x830000000,0x10000000, AddMem, SYS_MEM, SYS_MEM_CAP, Reserv, WRITE_BACK_XN},
 
   {"IMEM Base",         0x14680000, 0x0002A000, NoHob,  MMAP_IO, INITIALIZED, Conv,   NS_DEVICE},
